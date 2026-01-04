@@ -36,7 +36,15 @@ func NewAIService(serviceURL, apiKey string, mockMode bool, cloudinaryService *C
 }
 
 // uploadToCloudinary uploads an image to Cloudinary and returns the public URL
+// If imageData is already a Cloudinary URL (passed as bytes), it returns it as-is
 func (s *AIService) uploadToCloudinary(imageData []byte, prefix string) (string, error) {
+	// Check if imageData is actually a URL string
+	imageStr := string(imageData)
+	if len(imageStr) > 8 && (imageStr[:7] == "http://" || imageStr[:8] == "https://") {
+		// Already a URL, return as-is
+		return imageStr, nil
+	}
+	
 	if s.cloudinaryService == nil {
 		// Fallback to base64 if Cloudinary is not configured
 		contentType := detectImageType(imageData)

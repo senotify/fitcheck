@@ -1,0 +1,229 @@
+.job-history-view {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+  min-height: 100vh;
+  background: #1a1d24;
+}
+
+.job-history-header {
+  margin-bottom: 2.5rem;
+  text-align: center;
+}
+
+.job-history-header h2 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.75rem;
+}
+
+.job-history-header p {
+  font-size: 1.125rem;
+  color: #9ca3af;
+}
+
+.job-history-controls {
+  display: flex;
+  justify-content: center;
+  gap: 3rem;
+  margin-bottom: 2.5rem;
+  padding: 1.5rem 2rem;
+  background: #252932;
+  border: 1px solid #3d4350;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+.filter-controls,
+.sort-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.filter-controls label,
+.sort-controls label {
+  font-weight: 600;
+  color: #e4e7eb;
+  font-size: 0.95rem;
+}
+
+.filter-controls select,
+.sort-controls select {
+  padding: 0.625rem 1.25rem;
+  border: 2px solid #3d4350;
+  border-radius: 10px;
+  font-size: 0.9375rem;
+  background: #1a1d24;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  color: #e4e7eb;
+}
+
+.filter-controls select:hover,
+.sort-controls select:hover {
+  border-color: #667eea;
+  background: #252932;
+}
+
+.filter-controls select:focus,
+.sort-controls select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.job-history-content {
+  min-height: 400px;
+}
+
+.job-history-content > p {
+  text-align: center;
+  padding: 4rem 2rem;
+  font-size: 1.125rem;
+  color: #9ca3af;
+  background: #252932;
+  border: 1px solid #3d4350;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+.job-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 2rem;
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Toast Notification */
+.toast-notification {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  z-index: 1000;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  animation: slideInRight 0.3s ease, fadeOut 0.3s ease 2.7s;
+  min-width: 300px;
+}
+
+.toast-notification.success {
+  background: linear-gradient(
+    135deg,
+    rgba(46, 204, 113, 0.95) 0%,
+    rgba(39, 174, 96, 0.95) 100%
+  );
+  border: 1px solid rgba(46, 204, 113, 0.3);
+  color: white;
+}
+
+.toast-notification.error {
+  background: linear-gradient(
+    135deg,
+    rgba(239, 68, 68, 0.95) 0%,
+    rgba(220, 38, 38, 0.95) 100%
+  );
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: white;
+}
+
+.toast-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .job-history-view {
+    padding: 1rem;
+  }
+
+  .job-history-header h2 {
+    font-size: 2rem;
+  }
+
+  .job-history-header p {
+    font-size: 1rem;
+  }
+
+  .job-history-controls {
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1.25rem 1rem;
+  }
+
+  .filter-controls,
+  .sort-controls {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .filter-controls select,
+  .sort-controls select {
+    width: 100%;
+  }
+
+  .job-list {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .toast-notification {
+    top: 1rem;
+    right: 1rem;
+    left: 1rem;
+    min-width: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .job-history-header h2 {
+    font-size: 1.75rem;
+  }
+
+  .job-history-controls {
+    padding: 1rem;
+  }
+}

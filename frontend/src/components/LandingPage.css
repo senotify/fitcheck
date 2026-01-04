@@ -79,7 +79,7 @@
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #5dade2 0%, #27ae60 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -102,18 +102,18 @@
   font-size: 1.125rem;
   font-weight: 600;
   color: white;
-  background: linear-gradient(135deg, #5dade2 0%, #27ae60 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
   border-radius: 50px;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 10px 30px rgba(93, 173, 226, 0.3);
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
   animation: fadeInUp 0.6s ease-out 0.6s both;
 }
 
 .cta-button:hover {
   transform: translateY(-3px);
-  box-shadow: 0 15px 40px rgba(93, 173, 226, 0.4);
+  box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
 }
 
 .cta-button:active {
@@ -160,8 +160,8 @@
 
 .feature-card:hover {
   transform: translateY(-5px);
-  border-color: #5dade2;
-  box-shadow: 0 10px 30px rgba(93, 173, 226, 0.2);
+  border-color: #667eea;
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
 }
 
 .feature-icon {
@@ -213,7 +213,7 @@
 .step-number {
   width: 60px;
   height: 60px;
-  background: linear-gradient(135deg, #5dade2 0%, #27ae60 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -222,7 +222,7 @@
   font-weight: 700;
   color: white;
   margin: 0 auto 1rem;
-  box-shadow: 0 5px 20px rgba(93, 173, 226, 0.3);
+  box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
 }
 
 .step-title {
@@ -241,7 +241,7 @@
 
 .step-arrow {
   font-size: 2rem;
-  color: #5dade2;
+  color: #667eea;
   flex-shrink: 0;
 }
 

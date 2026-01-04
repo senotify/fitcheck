@@ -1,0 +1,24 @@
+Your Virtual FitCheck is Ready!
+
+Great news! Your virtual try-on has been processed and is ready to view.
+
+VIEW YOUR RESULT
+================
+Click or copy the link below to see how the shirt looks on you:
+
+http://localhost:8080/api/result-link/abc123xyz789token
+
+IMPORTANT NOTICE
+================
+This link will expire on December 6, 2025 at 2:26 PM +07 (24 hours from now).
+
+JOB DETAILS
+===========
+Job ID: demo-job-12345
+Processing completed: December 5, 2025 at 2:26 PM +07
+
+Thank you for using Virtual FitCheck!
+If you have any questions or need support, please contact us.
+
+---
+This is an automated message. Please do not reply to this email.

@@ -80,8 +80,13 @@ func TestUploadUserPhoto_Success(t *testing.T) {
 		StoragePath:   t.TempDir(),
 		CleanupDelay:  60,
 		MaxUploadSize: 10 * 1024 * 1024,
+		DatabaseURL:   "postgresql://postgres:devpassword@localhost:5432/virtualfitcheck?sslmode=disable",
 	}
 	server := NewServer(cfg)
+	if server.jobService == nil {
+		t.Skip("Skipping test: database not available")
+		return
+	}
 
 	// Create test request
 	imageData := createTestJPEG()
@@ -112,8 +117,13 @@ func TestUploadShirt_Success(t *testing.T) {
 		StoragePath:   t.TempDir(),
 		CleanupDelay:  60,
 		MaxUploadSize: 10 * 1024 * 1024,
+		DatabaseURL:   "postgresql://postgres:devpassword@localhost:5432/virtualfitcheck?sslmode=disable",
 	}
 	server := NewServer(cfg)
+	if server.jobService == nil {
+		t.Skip("Skipping test: database not available")
+		return
+	}
 
 	// Create test request
 	imageData := createTestPNG()
@@ -1318,7 +1328,7 @@ func TestStatus_CompletedJobIncludesResultUrl(t *testing.T) {
 	server := NewServer(cfg)
 
 	// Create a job directly
-	job, err := server.jobService.CreateJob("user-photo-id", "shirt-image-id")
+	job, err := server.jobService.CreateJob("test-session-id", "user-photo-id", "shirt-image-id")
 	assert.NoError(t, err)
 
 	// Mark job as completed with a result
@@ -1365,7 +1375,7 @@ func TestStatus_FailedJobIncludesError(t *testing.T) {
 	server := NewServer(cfg)
 
 	// Create a job directly
-	job, err := server.jobService.CreateJob("user-photo-id", "shirt-image-id")
+	job, err := server.jobService.CreateJob("test-session-id", "user-photo-id", "shirt-image-id")
 	assert.NoError(t, err)
 
 	// Mark job as failed with an error
@@ -1698,4 +1708,112 @@ func TestProperty_ImageQualityPreservation(t *testing.T) {
 	))
 
 	properties.TestingRun(t)
+}
+
+// TestHandleNotifyEmail tests the email notification endpoint
+func TestHandleNotifyEmail(t *testing.T) {
+	// Create test server
+	cfg := &config.Config{
+		Port:          "8080",
+		StoragePath:   t.TempDir(),
+		AIServiceURL:  "http://mock-ai-service.com",
+		AIServiceKey:  "test-key",
+		MockAIService: true,
+		EnableEmail:   false, // Disabled for testing
+	}
+	server := NewServer(cfg)
+
+	t.Run("successfully registers email for pending job", func(t *testing.T) {
+		// Create a job first
+		job, err := server.jobService.CreateJob("test-session-id", "user-photo-123", "shirt-456")
+		assert.NoError(t, err)
+
+		// Register email
+		reqBody := map[string]string{
+			"jobId": job.JobID,
+			"email": "user@example.com",
+		}
+		body, _ := json.Marshal(reqBody)
+
+		req := httptest.NewRequest("POST", "/api/notify-email", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+
+		server.router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var response map[string]interface{}
+		json.Unmarshal(w.Body.Bytes(), &response)
+		assert.True(t, response["success"].(bool))
+		assert.Contains(t, response["message"], "email")
+	})
+
+	t.Run("rejects invalid email format", func(t *testing.T) {
+		job, _ := server.jobService.CreateJob("test-session-id", "user-photo-123", "shirt-456")
+
+		reqBody := map[string]string{
+			"jobId": job.JobID,
+			"email": "invalid-email",
+		}
+		body, _ := json.Marshal(reqBody)
+
+		req := httptest.NewRequest("POST", "/api/notify-email", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+
+		server.router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("returns error for non-existent job", func(t *testing.T) {
+		reqBody := map[string]string{
+			"jobId": "non-existent-job-id",
+			"email": "user@example.com",
+		}
+		body, _ := json.Marshal(reqBody)
+
+		req := httptest.NewRequest("POST", "/api/notify-email", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+
+		server.router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+	})
+
+	t.Run("rejects email registration for completed job", func(t *testing.T) {
+		job, _ := server.jobService.CreateJob("test-session-id", "user-photo-123", "shirt-456")
+		server.jobService.UpdateJobStatus(job.JobID, "completed", "Done")
+
+		reqBody := map[string]string{
+			"jobId": job.JobID,
+			"email": "user@example.com",
+		}
+		body, _ := json.Marshal(reqBody)
+
+		req := httptest.NewRequest("POST", "/api/notify-email", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+
+		server.router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("requires both jobId and email", func(t *testing.T) {
+		reqBody := map[string]string{
+			"jobId": "some-job-id",
+		}
+		body, _ := json.Marshal(reqBody)
+
+		req := httptest.NewRequest("POST", "/api/notify-email", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+
+		server.router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
 }

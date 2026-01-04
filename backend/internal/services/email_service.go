@@ -90,16 +90,37 @@ func (es *EmailService) SendCompletionEmail(email string, resultURL string, jobI
 
 	// Construct the email
 	subject := "Your Virtual FitCheck is Ready!"
-	body := es.buildEmailBody(resultURL, jobID)
+	htmlBody := es.buildHTMLEmailBody(resultURL, jobID)
+	plainBody := es.buildPlainTextEmailBody(resultURL, jobID)
 
-	// Prepare the message
+	// Prepare multipart message with both plain text and HTML
+	boundary := "boundary-virtualfitcheck-" + time.Now().Format("20060102150405")
+	
 	message := fmt.Sprintf("From: %s\r\n", es.fromEmail)
 	message += fmt.Sprintf("To: %s\r\n", email)
 	message += fmt.Sprintf("Subject: %s\r\n", subject)
 	message += "MIME-Version: 1.0\r\n"
-	message += "Content-Type: text/html; charset=UTF-8\r\n"
+	message += fmt.Sprintf("Content-Type: multipart/alternative; boundary=\"%s\"\r\n", boundary)
 	message += "\r\n"
-	message += body
+	
+	// Plain text version
+	message += fmt.Sprintf("--%s\r\n", boundary)
+	message += "Content-Type: text/plain; charset=UTF-8\r\n"
+	message += "Content-Transfer-Encoding: 7bit\r\n"
+	message += "\r\n"
+	message += plainBody
+	message += "\r\n\r\n"
+	
+	// HTML version
+	message += fmt.Sprintf("--%s\r\n", boundary)
+	message += "Content-Type: text/html; charset=UTF-8\r\n"
+	message += "Content-Transfer-Encoding: 7bit\r\n"
+	message += "\r\n"
+	message += htmlBody
+	message += "\r\n\r\n"
+	
+	// End boundary
+	message += fmt.Sprintf("--%s--\r\n", boundary)
 
 	// Connect to SMTP server and send
 	auth := smtp.PlainAuth("", es.smtpUsername, es.smtpPassword, es.smtpHost)
@@ -113,8 +134,8 @@ func (es *EmailService) SendCompletionEmail(email string, resultURL string, jobI
 	return nil
 }
 
-// buildEmailBody constructs the HTML email body
-func (es *EmailService) buildEmailBody(resultURL string, jobID string) string {
+// buildHTMLEmailBody constructs the HTML email body
+func (es *EmailService) buildHTMLEmailBody(resultURL string, jobID string) string {
 	expirationTime := time.Now().Add(24 * time.Hour).Format("January 2, 2006 at 3:04 PM MST")
 	
 	html := `
@@ -172,4 +193,38 @@ func (es *EmailService) buildEmailBody(resultURL string, jobID string) string {
 `
 	
 	return strings.TrimSpace(html)
+}
+
+// buildPlainTextEmailBody constructs the plain text email body as a fallback
+func (es *EmailService) buildPlainTextEmailBody(resultURL string, jobID string) string {
+	expirationTime := time.Now().Add(24 * time.Hour).Format("January 2, 2006 at 3:04 PM MST")
+	completionTime := time.Now().Format("January 2, 2006 at 3:04 PM MST")
+	
+	plainText := fmt.Sprintf(`Your Virtual FitCheck is Ready!
+
+Great news! Your virtual try-on has been processed and is ready to view.
+
+VIEW YOUR RESULT
+================
+Click or copy the link below to see how the shirt looks on you:
+
+%s
+
+IMPORTANT NOTICE
+================
+This link will expire on %s (24 hours from now).
+
+JOB DETAILS
+===========
+Job ID: %s
+Processing completed: %s
+
+Thank you for using Virtual FitCheck!
+If you have any questions or need support, please contact us.
+
+---
+This is an automated message. Please do not reply to this email.
+`, resultURL, expirationTime, jobID, completionTime)
+	
+	return strings.TrimSpace(plainText)
 }

@@ -30,6 +30,16 @@ export interface ErrorResponse {
   };
 }
 
+export interface EmailNotificationRequest {
+  jobId: string;
+  email: string;
+}
+
+export interface EmailNotificationResponse {
+  success: boolean;
+  message: string;
+}
+
 class ApiClient {
   private baseUrl: string;
 
@@ -47,6 +57,7 @@ class ApiClient {
     const response = await fetch(`${this.baseUrl}/api/upload/user-photo`, {
       method: "POST",
       body: formData,
+      credentials: "include", // Include cookies for session
     });
 
     if (!response.ok) {
@@ -67,6 +78,7 @@ class ApiClient {
     const response = await fetch(`${this.baseUrl}/api/upload/shirt`, {
       method: "POST",
       body: formData,
+      credentials: "include", // Include cookies for session
     });
 
     if (!response.ok) {
@@ -89,6 +101,7 @@ class ApiClient {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include", // Include cookies for session
       body: JSON.stringify({
         userPhotoId,
         shirtImageId,
@@ -109,6 +122,7 @@ class ApiClient {
   async getJobStatus(jobId: string): Promise<StatusResponse> {
     const response = await fetch(`${this.baseUrl}/api/status/${jobId}`, {
       method: "GET",
+      credentials: "include", // Include cookies for session
     });
 
     if (!response.ok) {
@@ -131,6 +145,84 @@ class ApiClient {
    */
   getResultUrl(resultId: string): string {
     return `${this.baseUrl}/api/result/${resultId}`;
+  }
+
+  /**
+   * Register email notification for a job
+   */
+  async notifyEmail(
+    jobId: string,
+    email: string
+  ): Promise<EmailNotificationResponse> {
+    const response = await fetch(`${this.baseUrl}/api/notify-email`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include", // Include cookies for session
+      body: JSON.stringify({
+        jobId,
+        email,
+      }),
+    });
+
+    if (!response.ok) {
+      const error: ErrorResponse = await response.json();
+      throw new Error(
+        error.error.message || "Failed to register email notification"
+      );
+    }
+
+    return response.json();
+  }
+
+  /**
+   * Get list of jobs with optional filters
+   */
+  async getJobs(params?: {
+    status?: string;
+    sort?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<any> {
+    const queryParams = new URLSearchParams();
+    if (params?.status) queryParams.append("status", params.status);
+    if (params?.sort) queryParams.append("sort", params.sort);
+    if (params?.limit) queryParams.append("limit", params.limit.toString());
+    if (params?.offset) queryParams.append("offset", params.offset.toString());
+
+    const url = `${this.baseUrl}/api/jobs${
+      queryParams.toString() ? `?${queryParams.toString()}` : ""
+    }`;
+
+    const response = await fetch(url, {
+      method: "GET",
+      credentials: "include", // Include cookies for session
+    });
+
+    if (!response.ok) {
+      const error: ErrorResponse = await response.json();
+      throw new Error(error.error.message || "Failed to get jobs");
+    }
+
+    return response.json();
+  }
+
+  /**
+   * Delete a job
+   */
+  async deleteJob(jobId: string): Promise<any> {
+    const response = await fetch(`${this.baseUrl}/api/jobs/${jobId}`, {
+      method: "DELETE",
+      credentials: "include", // Include cookies for session
+    });
+
+    if (!response.ok) {
+      const error: ErrorResponse = await response.json();
+      throw new Error(error.error.message || "Failed to delete job");
+    }
+
+    return response.json();
   }
 }
 

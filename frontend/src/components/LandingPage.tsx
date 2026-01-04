@@ -1,11 +1,13 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import "./LandingPage.css";
 
 interface LandingPageProps {
-  onGetStarted: () => void;
+  onGetStarted?: () => void;
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
+  const navigate = useNavigate();
   return (
     <div className="landing-page">
       <div className="landing-container">
@@ -27,7 +29,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             Powered by advanced AI technology for realistic virtual try-ons.
           </p>
 
-          <button className="cta-button" onClick={onGetStarted}>
+          <button
+            className="cta-button"
+            onClick={() => {
+              if (onGetStarted) onGetStarted();
+              navigate("/upload");
+            }}
+          >
             <span>Get Started</span>
             <svg
               className="arrow-icon"

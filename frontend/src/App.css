@@ -13,9 +13,15 @@
   border-bottom: 1px solid #2d3139;
   position: relative;
   overflow: hidden;
+}
+
+.header-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .App-header::before {
@@ -25,7 +31,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, #27ae60, #5dade2, #27ae60);
+  background: linear-gradient(90deg, #667eea, #764ba2, #667eea);
   background-size: 200% 100%;
   animation: gradientShift 3s ease infinite;
 }
@@ -40,20 +46,24 @@
   }
 }
 
-.App-header h1 {
-  font-size: 1.5rem;
-  margin: 0;
-  font-weight: 700;
-  color: #ffffff;
-  letter-spacing: -0.5px;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+.logo-link {
+  text-decoration: none;
+  color: inherit;
+  transition: opacity 0.2s ease;
 }
 
-.App-header h1::before {
-  content: "✨";
-  font-size: 1.25rem;
+.logo-link:hover {
+  opacity: 0.8;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.logo-icon {
+  flex-shrink: 0;
   animation: float 3s ease-in-out infinite;
 }
 
@@ -67,7 +77,15 @@
   }
 }
 
-.App-header p {
+.logo-text h1 {
+  font-size: 1.5rem;
+  margin: 0;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+}
+
+.logo-text p {
   font-size: 0.875rem;
   color: #9ba3af;
   font-weight: 400;
@@ -76,9 +94,35 @@
 }
 
 @media (min-width: 768px) {
-  .App-header p {
+  .logo-text p {
     display: block;
   }
+}
+
+.header-nav {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.nav-link {
+  color: #9ba3af;
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: color 0.2s ease;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+}
+
+.nav-link:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-link:active,
+.nav-link.active {
+  color: #27ae60;
 }
 
 @media (max-width: 768px) {
@@ -86,12 +130,22 @@
     padding: 1rem;
   }
 
-  .App-header h1 {
+  .logo-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .logo-text h1 {
     font-size: 1.25rem;
   }
 
-  .App-header h1::before {
-    font-size: 1rem;
+  .header-nav {
+    gap: 1rem;
+  }
+
+  .nav-link {
+    font-size: 0.875rem;
+    padding: 0.4rem 0.6rem;
   }
 }
 
@@ -180,9 +234,9 @@
 }
 
 .process-button {
-  background: #238636;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  border: 1px solid #2ea043;
+  border: none;
   padding: 1rem 2rem;
   font-size: 1rem;
   font-weight: 500;
@@ -190,17 +244,17 @@
   cursor: pointer;
   transition: all 0.15s ease;
   width: 100%;
-  box-shadow: 0 1px 0 rgba(27, 31, 36, 0.04);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 .process-button:hover:not(:disabled) {
-  background: #2ea043;
-  border-color: #3fb950;
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+  transform: translateY(-2px);
 }
 
 .process-button:active:not(:disabled) {
-  background: #26a641;
-  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.15);
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
 }
 
 .process-button:disabled {

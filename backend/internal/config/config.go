@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"strconv"
 )
 
 // Config holds application configuration
@@ -23,6 +24,9 @@ type Config struct {
 	SMTPPassword        string // SMTP password
 	FromEmail           string // From email address
 	BaseURL             string // Base URL for result links
+	DatabaseURL         string // PostgreSQL connection string
+	DatabaseMaxConns    int    // Maximum database connections
+	DatabaseMaxIdle     int    // Maximum idle database connections
 }
 
 // Load reads configuration from environment variables
@@ -45,7 +49,19 @@ func Load() *Config {
 		SMTPPassword:        getEnv("SMTP_PASSWORD", ""),
 		FromEmail:           getEnv("FROM_EMAIL", "noreply@virtualfitcheck.com"),
 		BaseURL:             getEnv("BASE_URL", "http://localhost:8080"),
+		DatabaseURL:         getEnv("DATABASE_URL", ""),
+		DatabaseMaxConns:    getEnvInt("DATABASE_MAX_CONNECTIONS", 25),
+		DatabaseMaxIdle:     getEnvInt("DATABASE_MAX_IDLE", 5),
 	}
+}
+
+func getEnvInt(key string, defaultValue int) int {
+	if value := os.Getenv(key); value != "" {
+		if intValue, err := strconv.Atoi(value); err == nil {
+			return intValue
+		}
+	}
+	return defaultValue
 }
 
 func getEnv(key, defaultValue string) string {

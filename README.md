@@ -23,7 +23,8 @@ A web application that enables users to virtually try on clothing using generati
 ### Backend
 
 - Go 1.21 or higher
-- AI service API key (Replicate or compatible)
+- PostgreSQL 14 or higher (see [Database Setup Guide](DATABASE.md))
+- AI Service API key (Replicate or compatible)
 
 ### Frontend
 
@@ -31,6 +32,27 @@ A web application that enables users to virtually try on clothing using generati
 - npm or yarn
 
 ## Setup Instructions
+
+### Database Setup
+
+**Important:** Set up PostgreSQL before running the backend server.
+
+See the comprehensive [Database Setup Guide](DATABASE.md) for detailed instructions on:
+
+- Installing PostgreSQL (Docker or local)
+- Configuring the database connection
+- Running migrations
+- Troubleshooting common issues
+
+**Quick Start (Docker):**
+
+```bash
+docker run --name fitcheck-postgres \
+  -e POSTGRES_PASSWORD=devpassword \
+  -e POSTGRES_DB=virtualfitcheck \
+  -p 5432:5432 \
+  -d postgres:14
+```
 
 ### Backend Setup
 
@@ -59,9 +81,14 @@ PORT=8080
 STORAGE_PATH=./tmp/uploads
 AI_SERVICE_URL=https://api.replicate.com/v1/predictions
 AI_SERVICE_KEY=your_api_key_here
+
+# Database Configuration
+DATABASE_URL=postgresql://postgres:devpassword@localhost:5432/virtualfitcheck?sslmode=disable
+DATABASE_MAX_CONNECTIONS=25
+DATABASE_MAX_IDLE=5
 ```
 
-5. Run the backend server:
+5. Run the backend server (migrations run automatically):
 
 ```bash
 go run main.go
@@ -221,12 +248,15 @@ Download the composite result image.
 
 ### Backend
 
-| Variable         | Description                 | Default         |
-| ---------------- | --------------------------- | --------------- |
-| `PORT`           | Server port                 | `8080`          |
-| `STORAGE_PATH`   | Temporary file storage path | `./tmp/uploads` |
-| `AI_SERVICE_URL` | AI service API endpoint     | -               |
-| `AI_SERVICE_KEY` | AI service API key          | -               |
+| Variable                  | Description                 | Default                                                                  |
+| ------------------------- | --------------------------- | ------------------------------------------------------------------------ |
+| `PORT`                    | Server port                 | `8080`                                                                   |
+| `STORAGE_PATH`            | Temporary file storage path | `./tmp/uploads`                                                          |
+| `AI_SERVICE_URL`          | AI service API endpoint     | -                                                                        |
+| `AI_SERVICE_KEY`          | AI service API key          | -                                                                        |
+| `DATABASE_URL`            | PostgreSQL connection string| `postgresql://postgres:password@localhost:5432/virtualfitcheck?sslmode=disable` |
+| `DATABASE_MAX_CONNECTIONS`| Max database connections    | `25`                                                                     |
+| `DATABASE_MAX_IDLE`       | Max idle connections        | `5`                                
 
 ### Frontend
 

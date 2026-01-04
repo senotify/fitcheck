@@ -100,4 +100,20 @@ func SetGlobalLevel(level LogLevel) {
 
 // Debug logs a debug message using the global logger
 func Debug(message string, fields map[string]interface{}) {
-	globalLogger.Deb
+	globalLogger.Debug(message, fields)
+}
+
+// Info logs an info message using the global logger
+func Info(message string, fields map[string]interface{}) {
+	globalLogger.Info(message, fields)
+}
+
+// Warn logs a warning message using the global logger
+func Warn(message string, fields map[string]interface{}) {
+	globalLogger.Warn(message, fields)
+}
+
+// Error logs an error message using the global logger
+func Error(message string, fields map[string]interface{}) {
+	globalLogger.Error(message, fields)
+}

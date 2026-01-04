@@ -79,7 +79,8 @@ export const UploadInterface: React.FC<UploadInterfaceProps> = ({
         // Error is handled by parent component
         console.error("Upload failed:", error);
       } finally {
-        setIsUploading(false);
+        // Keep uploading state true briefly to show 100% completion
+        setTimeout(() => setIsUploading(false), 1000);
       }
     },
     [onUpload]
@@ -192,12 +193,16 @@ export const UploadInterface: React.FC<UploadInterfaceProps> = ({
           </div>
         )}
 
-        {isUploading && (
+        {(isUploading || uploadProgress > 0) && (
           <div className="upload-progress-overlay">
+            {/* Loading spinner */}
+            <div className="loading-spinner"></div>
+
+            {/* Progress bar */}
             <div className="progress-bar-container">
               <div
                 className="progress-bar"
-                style={{ width: `${uploadProgress}%` }}
+                style={{ width: `${Math.max(uploadProgress, 5)}%` }}
               />
             </div>
             <p className="progress-text">{uploadProgress}%</p>
