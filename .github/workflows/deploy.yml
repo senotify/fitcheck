@@ -1,0 +1,126 @@
+name: Deploy
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Image tag to deploy (a commit SHA, or 'latest'). Use this to roll back."
+        required: false
+        default: latest
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.pick.outputs.tag }}
+      skip: ${{ steps.pick.outputs.skip }}
+    strategy:
+      matrix:
+        include:
+          - name: backend
+            context: ./backend
+          - name: frontend
+            context: ./frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: pick
+        run: |
+          echo "tag=${{ github.event.inputs.tag || github.sha }}" >> "$GITHUB_OUTPUT"
+          if [ -n "${{ github.event.inputs.tag }}" ] && [ "${{ github.event.inputs.tag }}" != "latest" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.pick.outputs.skip == 'false'
+        uses: docker/setup-buildx-action@v3
+
+      - if: steps.pick.outputs.skip == 'false'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - if: steps.pick.outputs.skip == 'false'
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          push: true
+          tags: |
+            ghcr.io/senotify/fitcheck-${{ matrix.name }}:${{ github.sha }}
+            ghcr.io/senotify/fitcheck-${{ matrix.name }}:latest
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy over SSH
+        env:
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          HOST: ${{ secrets.VPS_HOST }}
+          USER: ${{ secrets.VPS_USER }}
+          TOKEN: ${{ github.token }}
+          ACTOR: ${{ github.actor }}
+          TAG: ${{ needs.build.outputs.tag }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy
+          chmod 600 ~/.ssh/deploy
+          ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts 2>/dev/null
+
+          # Ship compose and migrations only. .env holds the Replicate,
+          # Cloudinary and SMTP credentials and lives solely on the server —
+          # it must never be overwritten from CI.
+          scp -i ~/.ssh/deploy -o IdentitiesOnly=yes \
+            docker-compose.prod.yml "$USER@$HOST:/home/$USER/fitcheck/docker-compose.prod.yml"
+          scp -i ~/.ssh/deploy -o IdentitiesOnly=yes -r \
+            backend/migrations "$USER@$HOST:/home/$USER/fitcheck/backend/"
+
+          ssh -i ~/.ssh/deploy -o IdentitiesOnly=yes "$USER@$HOST" \
+            TAG="$TAG" TOKEN="$TOKEN" ACTOR="$ACTOR" 'bash -euo pipefail -s' <<'REMOTE'
+          echo "$TOKEN" | docker login ghcr.io -u "$ACTOR" --password-stdin
+          trap 'docker logout ghcr.io >/dev/null 2>&1 || true' EXIT
+
+          cd "$HOME/fitcheck"
+          test -f .env || { echo ".env missing on server — refusing to deploy"; exit 1; }
+          export TAG
+          docker compose -f docker-compose.prod.yml pull backend frontend
+          docker compose -f docker-compose.prod.yml up -d
+
+          # The app ships no migration runner, so a fresh volume would leave
+          # the jobs table missing. These are idempotent enough to re-run.
+          for m in 000001_create_jobs_table 000002_add_job_validation_constraints 000003_add_result_token_index; do
+            docker exec -i fitcheck-postgres psql -U postgres -d virtualfitcheck \
+              < "backend/migrations/${m}.up.sql" >/dev/null 2>&1 || true
+          done
+
+          docker image prune -f >/dev/null 2>&1 || true
+          echo "deployed fitcheck at $TAG"
+          REMOTE
+
+      - name: Verify API is serving
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 12); do
+            body=$(curl -sS -m 20 --resolve "fitcheck.senotify.com:443:${{ secrets.VPS_HOST }}" \
+                     "https://fitcheck.senotify.com/api/jobs" || echo "")
+            echo "attempt $i: ${body:0:60}"
+            # A 500 here means the schema is missing; "success" proves the
+            # backend reached Postgres and the jobs table exists.
+            case "$body" in *'"success":true'*) echo "fitcheck OK"; exit 0;; esac
+            sleep 6
+          done
+          echo "fitcheck API did not come up"; exit 1

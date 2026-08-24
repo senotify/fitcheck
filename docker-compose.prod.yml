@@ -21,6 +21,7 @@ services:
 
   backend:
     build: ./backend
+    image: ghcr.io/senotify/fitcheck-backend:${TAG:-latest}
     container_name: fitcheck-backend
     depends_on:
       postgres:
@@ -33,6 +34,7 @@ services:
 
   frontend:
     build: ./frontend
+    image: ghcr.io/senotify/fitcheck-frontend:${TAG:-latest}
     container_name: fitcheck-frontend
     depends_on:
       - backend
