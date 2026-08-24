@@ -1,0 +1,48 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:14
+    container_name: fitcheck-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD not set — see .env}
+      POSTGRES_DB: virtualfitcheck
+    volumes:
+      - fitcheck_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - proxy-network
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    container_name: fitcheck-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ./.env
+    networks:
+      - proxy-network
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: fitcheck-frontend
+    depends_on:
+      - backend
+    networks:
+      - proxy-network
+    restart: unless-stopped
+
+volumes:
+  fitcheck_postgres_data:
+
+networks:
+  proxy-network:
+    external: true

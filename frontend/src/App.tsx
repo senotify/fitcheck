@@ -54,7 +54,7 @@ function App() {
       const uploadedImage: UploadedImage = {
         file,
         fileId: response.fileId,
-        previewUrl: response.previewUrl.startsWith("http") ? response.previewUrl : `http://localhost:8080${response.previewUrl}`, // Use previewUrl from backend response
+        previewUrl: response.previewUrl.startsWith("http") ? response.previewUrl : `${process.env.REACT_APP_API_URL || ""}${response.previewUrl}`, // Use previewUrl from backend response
       };
       setState((prev) => ({ ...prev, userPhoto: uploadedImage }));
 
@@ -102,7 +102,7 @@ function App() {
       const uploadedImage: UploadedImage = {
         file,
         fileId: response.fileId,
-        previewUrl: response.previewUrl.startsWith("http") ? response.previewUrl : `http://localhost:8080${response.previewUrl}`, // Use previewUrl from backend response
+        previewUrl: response.previewUrl.startsWith("http") ? response.previewUrl : `${process.env.REACT_APP_API_URL || ""}${response.previewUrl}`, // Use previewUrl from backend response
       };
       setState((prev) => ({ ...prev, shirtImage: uploadedImage }));
 
@@ -161,7 +161,7 @@ function App() {
     const fullResultUrl = resultUrl.startsWith("http")
       ? resultUrl
       : `${
-          process.env.REACT_APP_API_URL || "http://localhost:8080"
+          process.env.REACT_APP_API_URL || ""
         }${resultUrl}`;
 
     setState((prev) => ({
